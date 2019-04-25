@@ -1,0 +1,23 @@
+{
+  "require": {
+    "guzzlehttp/guzzle": "^6.0",
+    "swlib/saber": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "GoSwoole\\GuzzleSaber\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "tmtbe",
+      "email": "896369042@qq.com",
+      "homepage": "https://github.com/tmtbe"
+    }
+  ],
+  "name": "go-swoole/guzzle-saber",
+  "type": "library",
+  "keywords": ["server", "swoole"],
+  "description": "guzzle-saber",
+  "license": "MIT"
+}
