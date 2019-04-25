@@ -10,8 +10,8 @@ namespace GoSwoole\GuzzleSaber;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Psr7;
 use GuzzleHttp\Promise\PromiseInterface;
+use GuzzleHttp\Psr7;
 use GuzzleHttp\RedirectMiddleware;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -32,6 +32,7 @@ class SaberClient implements ClientInterface
 
         $this->configureDefaults($config);
     }
+
     /**
      * Configures the default options for a client.
      *
@@ -41,11 +42,12 @@ class SaberClient implements ClientInterface
     {
         $defaults = [
             'allow_redirects' => RedirectMiddleware::$defaultSettings,
-            'http_errors'     => true,
-            'verify'          => false
+            'http_errors' => true,
+            'verify' => false
         ];
         $this->config = $config + $defaults;
     }
+
     /**
      * Send an HTTP request.
      *
@@ -59,12 +61,14 @@ class SaberClient implements ClientInterface
     public function send(RequestInterface $request, array $options = [])
     {
         $config = ChangeOptions::change($options);
-        $config['uri'] = $request->getUri()->getPath();
-        $config['uri'] = $request->getBody();
-        return SaberGM::psr($options)->withRequestTarget($request->getRequestTarget())
-            ->withBody($request->getBody())->withMethod($request->getMethod())->withUri($request->getUri())
-            ->withProtocolVersion($request->getProtocolVersion())
-            ->withHeaders($request->getHeaders())->exec()->recv();;
+        $saberRequest = SaberGM::psr($config);
+        if ($request->getRequestTarget() != null) $saberRequest->withRequestTarget($request->getRequestTarget());
+        if ($request->getBody() != null) $saberRequest->withBody($request->getBody());
+        if ($request->getMethod() != null) $saberRequest->withMethod($request->getMethod());
+        if ($request->getProtocolVersion() != null) $saberRequest->withProtocolVersion($request->getProtocolVersion());
+        if ($request->getHeaders() != null) $saberRequest->withHeaders($request->getHeaders());
+        if ($request->getUri() != null) $saberRequest->withUri($this->buildUri($request->getUri(), $options), $request->hasHeader('Host'));
+        return $saberRequest->exec()->recv();
     }
 
     /**
@@ -78,7 +82,7 @@ class SaberClient implements ClientInterface
      */
     public function sendAsync(RequestInterface $request, array $options = [])
     {
-        // TODO: Implement sendAsync() method.
+        throw new \Exception("暂不支持");
     }
 
     /**
@@ -97,15 +101,15 @@ class SaberClient implements ClientInterface
      */
     public function request($method, $uri, array $options = [])
     {
-        if(is_string($uri)){
-            $options['uri'] = $uri;
-            return SaberGM::psr($options)->withMethod($method)
+        $config = ChangeOptions::change($options);
+        if (is_string($uri)) {
+            $config['uri'] = $uri;
+            return SaberGM::psr($config)->withMethod($method)
                 ->exec()->recv();
-        }else{
-            return SaberGM::psr($options)->withMethod($method)->withUri($uri)
+        } else {
+            return SaberGM::psr($config)->withMethod($method)->withUri($uri)
                 ->exec()->recv();
         }
-
     }
 
     /**
@@ -124,7 +128,7 @@ class SaberClient implements ClientInterface
      */
     public function requestAsync($method, $uri, array $options = [])
     {
-        // TODO: Implement requestAsync() method.
+        throw new \Exception("暂不支持");
     }
 
     /**
@@ -145,5 +149,15 @@ class SaberClient implements ClientInterface
             : (isset($this->config[$option]) ? $this->config[$option] : null);
     }
 
+    private function buildUri($uri, array $config)
+    {
+        // for BC we accept null which would otherwise fail in uri_for
+        $uri = Psr7\uri_for($uri === null ? '' : $uri);
 
+        if (isset($config['base_uri'])) {
+            $uri = Psr7\UriResolver::resolve(Psr7\uri_for($config['base_uri']), $uri);
+        }
+
+        return $uri->getScheme() === '' && $uri->getHost() !== '' ? $uri->withScheme('http') : $uri;
+    }
 }
