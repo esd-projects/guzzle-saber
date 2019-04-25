@@ -16,6 +16,7 @@ use GuzzleHttp\RedirectMiddleware;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Swlib\Saber\Response;
 use Swlib\SaberGM;
 
 class SaberClient implements ClientInterface
@@ -60,7 +61,7 @@ class SaberClient implements ClientInterface
      */
     public function send(RequestInterface $request, array $options = [])
     {
-        $config = ChangeOptions::change($options);
+        $config = ChangeOptions::change($options + $this->config);
         $saberRequest = SaberGM::psr($config);
         if ($request->getRequestTarget() != null) $saberRequest->withRequestTarget($request->getRequestTarget());
         if ($request->getBody() != null) $saberRequest->withBody($request->getBody());
@@ -68,7 +69,7 @@ class SaberClient implements ClientInterface
         if ($request->getProtocolVersion() != null) $saberRequest->withProtocolVersion($request->getProtocolVersion());
         if ($request->getHeaders() != null) $saberRequest->withHeaders($request->getHeaders());
         if ($request->getUri() != null) $saberRequest->withUri($this->buildUri($request->getUri(), $options), $request->hasHeader('Host'));
-        return $saberRequest->exec()->recv();
+        return $this->changeResponse($saberRequest->exec()->recv());
     }
 
     /**
@@ -101,14 +102,14 @@ class SaberClient implements ClientInterface
      */
     public function request($method, $uri, array $options = [])
     {
-        $config = ChangeOptions::change($options);
+        $config = ChangeOptions::change($options + $this->config);
         if (is_string($uri)) {
             $config['uri'] = $uri;
-            return SaberGM::psr($config)->withMethod($method)
-                ->exec()->recv();
+            return $this->changeResponse(SaberGM::psr($config)->withMethod($method)
+                ->exec()->recv());
         } else {
-            return SaberGM::psr($config)->withMethod($method)->withUri($uri)
-                ->exec()->recv();
+            return $this->changeResponse(SaberGM::psr($config)->withMethod($method)->withUri($uri)
+                ->exec()->recv());
         }
     }
 
@@ -159,5 +160,15 @@ class SaberClient implements ClientInterface
         }
 
         return $uri->getScheme() === '' && $uri->getHost() !== '' ? $uri->withScheme('http') : $uri;
+    }
+
+    public function changeResponse(Response $response): Psr7\Response
+    {
+        $result = new Psr7\Response($response->getStatusCode(),
+            $response->getHeaders(),
+            $response->getBody(),
+            $response->getProtocolVersion(),
+            $response->getReasonPhrase());
+        return $result;
     }
 }
