@@ -73,7 +73,7 @@ class ChangeOptions
         //http_errors 设置成 false 来禁用HTTP协议抛出的异常(如 4xx 和 5xx 响应)，默认情况下HTPP协议出错时会抛出异常。
         $http_errors = $options['http_errors'] ?? null;
         if ($http_errors === false) {
-            $saberConfig['exception_report'] = HttpExceptionMask::E_ALL ^ HttpExceptionMask::E_BAD_RESPONSE;
+            $saberConfig['exception_report'] = HttpExceptionMask::E_NONE;
         }
         //json 选项用来轻松将JSON数据当成主体上传， 如果没有设置Content-Type头信息的时候会设置成 application/json 。
         $json = $options['json'] ?? null;
