@@ -6,7 +6,7 @@
  * Time: 11:12
  */
 
-namespace GoSwoole\GuzzleSaber;
+namespace ESD\GuzzleSaber;
 
 
 use GuzzleHttp\Cookie\CookieJarInterface;

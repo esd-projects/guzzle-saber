@@ -6,7 +6,7 @@
  * Time: 11:08
  */
 
-namespace GoSwoole\GuzzleSaber;
+namespace ESD\GuzzleSaber;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;

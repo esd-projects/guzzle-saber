@@ -5,7 +5,7 @@
   },
   "autoload": {
     "psr-4": {
-      "GoSwoole\\GuzzleSaber\\": "src/"
+      "ESD\\GuzzleSaber\\": "src/"
     }
   },
   "authors": [
@@ -15,7 +15,7 @@
       "homepage": "https://github.com/tmtbe"
     }
   ],
-  "name": "go-swoole/guzzle-saber",
+  "name": "esd/guzzle-saber",
   "type": "library",
   "keywords": ["server", "swoole"],
   "description": "guzzle-saber",
